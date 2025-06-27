@@ -1,4 +1,4 @@
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using AutoMapper;
 using GestionAssociatifERP.Mappings;
 using GestionAssociatifERP.Models;
@@ -92,6 +92,8 @@ namespace GestionAssociatifERP
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.MapGet("/", () => "Gestion Associatif ERP API is running 🚀");
 
             app.Run();
         }
