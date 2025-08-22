@@ -1,6 +1,5 @@
 ﻿using Asp.Versioning;
 using GestionAssociatifERP.Dtos.V1;
-using GestionAssociatifERP.Helpers;
 using GestionAssociatifERP.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,10 +22,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> GetEnfantsByPersonneAutorisee(int personneAutoriseeId)
         {
             var result = await _linkPersonneAutoriseeEnfantService.GetEnfantsByPersonneAutoriseeIdAsync(personneAutoriseeId);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // GET: api/v1/linkpersonneautoriseeenfant/enfant/{enfantId}
@@ -34,10 +31,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> GetPersonnesByEnfant(int enfantId)
         {
             var result = await _linkPersonneAutoriseeEnfantService.GetPersonnesAutoriseesByEnfantIdAsync(enfantId);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // GET: api/v1/linkpersonneautoriseeenfant/personne/{personneId}/enfant/{enfantId}
@@ -45,10 +40,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> Exists(int personneAutoriseeId, int enfantId)
         {
             var result = await _linkPersonneAutoriseeEnfantService.ExistsLinkPersonneAutoriseeEnfantAsync(enfantId, personneAutoriseeId);
-            if (!result.Success)
-                return BadRequest(new { result.Message });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // POST: api/v1/linkpersonneautoriseeenfant
@@ -56,17 +49,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> Create([FromBody] CreateLinkPersonneAutoriseeEnfantDto linkPersonneAutoriseeEnfantDto)
         {
             var result = await _linkPersonneAutoriseeEnfantService.CreateLinkPersonneAutoriseeEnfantAsync(linkPersonneAutoriseeEnfantDto);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
-            else if (!result.Success && result.ErrorType == ServiceErrorType.Conflict)
-                return Conflict(new { result.Message });
-            else if (!result.Success && result.ErrorType == ServiceErrorType.InternalError)
-                return StatusCode(500, new
-                {
-                    MessageContent = result.Message
-                });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // PUT: api/v1/linkpersonneautoriseeenfant
@@ -76,9 +60,7 @@ namespace GestionAssociatifERP.Controllers.V1
             if (linkPersonneAutoriseeEnfantDto == null)
                 return BadRequest(new { Message = "Le corps de la requête ne peut pas être vide." });
 
-            var result = await _linkPersonneAutoriseeEnfantService.UpdateLinkPersonneAutoriseeEnfantAsync(linkPersonneAutoriseeEnfantDto);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
+            await _linkPersonneAutoriseeEnfantService.UpdateLinkPersonneAutoriseeEnfantAsync(linkPersonneAutoriseeEnfantDto);
 
             return NoContent();
         }
@@ -87,9 +69,7 @@ namespace GestionAssociatifERP.Controllers.V1
         [HttpDelete("personne-autorisee/{personneAutoriseeId}/enfant/{enfantId}")]
         public async Task<IActionResult> Delete(int personneAutoriseeId, int enfantId)
         {
-            var result = await _linkPersonneAutoriseeEnfantService.RemoveLinkPersonneAutoriseeEnfantAsync(enfantId, personneAutoriseeId);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
+            await _linkPersonneAutoriseeEnfantService.RemoveLinkPersonneAutoriseeEnfantAsync(enfantId, personneAutoriseeId);
 
             return NoContent();
         }

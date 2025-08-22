@@ -1,6 +1,5 @@
 ﻿using Asp.Versioning;
 using GestionAssociatifERP.Dtos.V1;
-using GestionAssociatifERP.Helpers;
 using GestionAssociatifERP.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,7 +23,7 @@ namespace GestionAssociatifERP.Controllers.V1
         {
             var result = await _informationFinanciereService.GetAllInformationsFinancieresAsync();
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // GET: api/v1/informationsfinancieres/{id}
@@ -32,10 +31,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _informationFinanciereService.GetInformationFinanciereAsync(id);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // POST: api/v1/informationsfinancieres
@@ -46,24 +43,15 @@ namespace GestionAssociatifERP.Controllers.V1
                 return BadRequest(new { Message = "Le corps de la requête ne peut pas être vide." });
 
             var result = await _informationFinanciereService.CreateInformationFinanciereAsync(informationFinanciereDto);
-            if (!result.Success && result.ErrorType == ServiceErrorType.InternalError)
-                return StatusCode(500, new
-                {
-                    MessageContent = result.Message
-                });
 
-            return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
+            return CreatedAtAction(nameof(GetById), new { id = result!.Id }, result);
         }
 
         // PUT: api/v1/informationsfinancieres/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateInformationFinanciereDto informationFinanciereDto)
         {
-            var result = await _informationFinanciereService.UpdateInformationFinanciereAsync(id, informationFinanciereDto);
-            if (!result.Success && result.ErrorType == ServiceErrorType.BadRequest)
-                return BadRequest(new { result.Message });
-            else if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
+            await _informationFinanciereService.UpdateInformationFinanciereAsync(id, informationFinanciereDto);
 
             return NoContent();
         }
@@ -72,9 +60,7 @@ namespace GestionAssociatifERP.Controllers.V1
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _informationFinanciereService.DeleteInformationFinanciereAsync(id);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
+            await _informationFinanciereService.DeleteInformationFinanciereAsync(id);
 
             return NoContent();
         }

@@ -1,6 +1,5 @@
 ﻿using Asp.Versioning;
 using GestionAssociatifERP.Dtos.V1;
-using GestionAssociatifERP.Helpers;
 using GestionAssociatifERP.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,10 +22,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> GetEnfantsByResponsable(int responsableId)
         {
             var result = await _linkResponsableEnfantService.GetEnfantsByResponsableIdAsync(responsableId);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // GET: api/v1/linkresponsableenfant/enfant/{enfantId}
@@ -34,10 +31,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> GetResponsablesByEnfant(int enfantId)
         {
             var result = await _linkResponsableEnfantService.GetResponsablesByEnfantIdAsync(enfantId);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // GET: api/v1/linkresponsableenfant/responsable/{responsableId}/enfant/{enfantId}
@@ -45,10 +40,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> Exists(int responsableId, int enfantId)
         {
             var result = await _linkResponsableEnfantService.ExistsLinkResponsableEnfantAsync(enfantId, responsableId);
-            if (!result.Success)
-                return BadRequest(new { result.Message });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // POST: api/v1/linkresponsableenfant
@@ -56,17 +49,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> Create([FromBody] CreateLinkResponsableEnfantDto linkResponsableEnfantDto)
         {
             var result = await _linkResponsableEnfantService.CreateLinkResponsableEnfantAsync(linkResponsableEnfantDto);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
-            else if (!result.Success && result.ErrorType == ServiceErrorType.Conflict)
-                return Conflict(new { result.Message });
-            else if (!result.Success && result.ErrorType == ServiceErrorType.InternalError)
-                return StatusCode(500, new
-                {
-                    MessageContent = result.Message
-                });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // PUT: api/v1/linkresponsableenfant
@@ -76,9 +60,7 @@ namespace GestionAssociatifERP.Controllers.V1
             if (linkResponsableEnfantDto == null)
                 return BadRequest(new { Message = "Le corps de la requête ne peut pas être vide." });
 
-            var result = await _linkResponsableEnfantService.UpdateLinkResponsableEnfantAsync(linkResponsableEnfantDto);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
+            await _linkResponsableEnfantService.UpdateLinkResponsableEnfantAsync(linkResponsableEnfantDto);
 
             return NoContent();
         }
@@ -87,9 +69,7 @@ namespace GestionAssociatifERP.Controllers.V1
         [HttpDelete("responsable/{responsableId}/enfant/{enfantId}")]
         public async Task<IActionResult> Delete(int responsableId, int enfantId)
         {
-            var result = await _linkResponsableEnfantService.RemoveLinkResponsableEnfantAsync(enfantId, responsableId);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
+            await _linkResponsableEnfantService.RemoveLinkResponsableEnfantAsync(enfantId, responsableId);
 
             return NoContent();
         }

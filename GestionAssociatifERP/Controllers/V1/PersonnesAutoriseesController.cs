@@ -1,7 +1,6 @@
 ﻿using Asp.Versioning;
 using AutoMapper;
 using GestionAssociatifERP.Dtos.V1;
-using GestionAssociatifERP.Helpers;
 using GestionAssociatifERP.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,7 +24,7 @@ namespace GestionAssociatifERP.Controllers.V1
         {
             var result = await _personneAutoriseeService.GetAllPersonnesAutoriseesAsync();
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // GET: api/v1/personnesautorisees/{id}
@@ -33,10 +32,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _personneAutoriseeService.GetPersonneAutoriseeAsync(id);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // GET: api/v1/personnesautorisees/{id}/with-enfants
@@ -44,10 +41,8 @@ namespace GestionAssociatifERP.Controllers.V1
         public async Task<IActionResult> GetWithEnfants(int id)
         {
             var result = await _personneAutoriseeService.GetPersonneAutoriseeWithEnfantsAsync(id);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
         // POST: api/v1/personnesautorisees
@@ -58,24 +53,15 @@ namespace GestionAssociatifERP.Controllers.V1
                 return BadRequest(new { Message = "Le corps de la requête ne peut pas être vide." });
 
             var result = await _personneAutoriseeService.CreatePersonneAutoriseeAsync(personneAutoriseeDto);
-            if (!result.Success && result.ErrorType == ServiceErrorType.InternalError)
-                return StatusCode(500, new
-                {
-                    MessageContent = result.Message
-                });
 
-            return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
+            return CreatedAtAction(nameof(GetById), new { id = result!.Id }, result);
         }
 
         // PUT: api/v1/personnesautorisees/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdatePersonneAutoriseeDto personneAutoriseeDto)
         {
-            var result = await _personneAutoriseeService.UpdatePersonneAutoriseeAsync(id, personneAutoriseeDto);
-            if (!result.Success && result.ErrorType == ServiceErrorType.BadRequest)
-                return BadRequest(new { result.Message });
-            else if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
+            await _personneAutoriseeService.UpdatePersonneAutoriseeAsync(id, personneAutoriseeDto);
 
             return NoContent();
         }
@@ -84,9 +70,7 @@ namespace GestionAssociatifERP.Controllers.V1
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _personneAutoriseeService.DeletePersonneAutoriseeAsync(id);
-            if (!result.Success && result.ErrorType == ServiceErrorType.NotFound)
-                return NotFound(new { result.Message });
+            await _personneAutoriseeService.DeletePersonneAutoriseeAsync(id);
 
             return NoContent();
         }
