@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using GestionAssociatifERP.Dtos.V1;
-using GestionAssociatifERP.Helpers;
 using GestionAssociatifERP.Models;
 using GestionAssociatifERP.Repositories;
 
@@ -21,88 +20,75 @@ namespace GestionAssociatifERP.Services
             _mapper = mapper;
         }
 
-        public async Task<ServiceResult<IEnumerable<LinkPersonneAutoriseeEnfantDto>>> GetPersonnesAutoriseesByEnfantIdAsync(int enfantId)
+        public async Task<IEnumerable<LinkPersonneAutoriseeEnfantDto>> GetPersonnesAutoriseesByEnfantIdAsync(int enfantId)
         {
             var exists = await _enfantRepository.ExistsAsync(e => e.Id == enfantId);
             if (!exists)
-                return ServiceResult<IEnumerable<LinkPersonneAutoriseeEnfantDto>>.Fail("L'enfant spécifié n'existe pas", ServiceErrorType.NotFound);
+                throw new Exception("L'enfant spécifié n'existe pas.");
 
             var linkPersonneAutoriseeEnfant = await _personneAutoriseeEnfantRepository.GetPersonnesAutoriseesByEnfantIdAsync(enfantId);
 
-            var linkPersonneAutoriseeEnfantDto = _mapper.Map<IEnumerable<LinkPersonneAutoriseeEnfantDto>>(linkPersonneAutoriseeEnfant);
-
-            return ServiceResult<IEnumerable<LinkPersonneAutoriseeEnfantDto>>.Ok(linkPersonneAutoriseeEnfantDto);
+            return _mapper.Map<IEnumerable<LinkPersonneAutoriseeEnfantDto>>(linkPersonneAutoriseeEnfant);
         }
 
-        public async Task<ServiceResult<IEnumerable<LinkPersonneAutoriseeEnfantDto>>> GetEnfantsByPersonneAutoriseeIdAsync(int personneAutoriseeId)
+        public async Task<IEnumerable<LinkPersonneAutoriseeEnfantDto>> GetEnfantsByPersonneAutoriseeIdAsync(int personneAutoriseeId)
         {
             var exists = await _personneAutoriseeRepository.ExistsAsync(pa => pa.Id == personneAutoriseeId);
             if (!exists)
-                return ServiceResult<IEnumerable<LinkPersonneAutoriseeEnfantDto>>.Fail("La personne autorisée spécifiée n'existe pas", ServiceErrorType.NotFound);
+                throw new Exception("La personne autorisée spécifiée n'existe pas.");
 
             var linkPersonneAutoriseeEnfant = await _personneAutoriseeEnfantRepository.GetEnfantsByPersonneAutoriseeIdAsync(personneAutoriseeId);
 
-            var linkPersonneAutoriseeEnfantDto = _mapper.Map<IEnumerable<LinkPersonneAutoriseeEnfantDto>>(linkPersonneAutoriseeEnfant);
-
-            return ServiceResult<IEnumerable<LinkPersonneAutoriseeEnfantDto>>.Ok(linkPersonneAutoriseeEnfantDto);
+            return _mapper.Map<IEnumerable<LinkPersonneAutoriseeEnfantDto>>(linkPersonneAutoriseeEnfant);
         }
 
-        public async Task<ServiceResult<bool>> ExistsLinkPersonneAutoriseeEnfantAsync(int enfantId, int personneAutoriseeId)
+        public async Task<bool> ExistsLinkPersonneAutoriseeEnfantAsync(int enfantId, int personneAutoriseeId)
         {
-            var exists = await _personneAutoriseeEnfantRepository.LinkExistsAsync(personneAutoriseeId, enfantId);
-
-            return ServiceResult<bool>.Ok(exists);
+            return await _personneAutoriseeEnfantRepository.LinkExistsAsync(personneAutoriseeId, enfantId);
         }
 
-        public async Task<ServiceResult<LinkPersonneAutoriseeEnfantDto>> CreateLinkPersonneAutoriseeEnfantAsync(CreateLinkPersonneAutoriseeEnfantDto personneAutoriseeEnfantDto)
+        public async Task<LinkPersonneAutoriseeEnfantDto> CreateLinkPersonneAutoriseeEnfantAsync(CreateLinkPersonneAutoriseeEnfantDto personneAutoriseeEnfantDto)
         {
             if (!await _personneAutoriseeRepository.ExistsAsync(pa => pa.Id == personneAutoriseeEnfantDto.PersonneAutoriseeId))
-                return ServiceResult<LinkPersonneAutoriseeEnfantDto>.Fail("La personne autorisée spécifiée n'existe pas", ServiceErrorType.NotFound);
+                throw new Exception("La personne autorisée spécifiée n'existe pas.");
             else if (!await _enfantRepository.ExistsAsync(e => e.Id == personneAutoriseeEnfantDto.EnfantId))
-                return ServiceResult<LinkPersonneAutoriseeEnfantDto>.Fail("L'enfant spécifié n'existe pas", ServiceErrorType.NotFound);
-
-            if (await _personneAutoriseeEnfantRepository.LinkExistsAsync(personneAutoriseeEnfantDto.PersonneAutoriseeId, personneAutoriseeEnfantDto.EnfantId))
-                return ServiceResult<LinkPersonneAutoriseeEnfantDto>.Fail("Ce lien existe déjà entre cette personne autorisée et cet enfant", ServiceErrorType.Conflict);
+                throw new Exception("L'enfant spécifié n'existe pas.");
+            else if (await _personneAutoriseeEnfantRepository.LinkExistsAsync(personneAutoriseeEnfantDto.PersonneAutoriseeId, personneAutoriseeEnfantDto.EnfantId))
+                throw new Exception("Ce lien existe déjà entre cette personne autorisée et cet enfant.");
 
             var personneAutoriseeEnfant = _mapper.Map<PersonneAutoriseeEnfant>(personneAutoriseeEnfantDto);
             if (personneAutoriseeEnfant == null)
-                return ServiceResult<LinkPersonneAutoriseeEnfantDto>.Fail("Erreur lors de la création du lien Personne Autorisée / Enfant : Le Mapping a échoué", ServiceErrorType.InternalError);
+                throw new Exception("Erreur lors de la création du lien Personne Autorisée / Enfant : Le Mapping a échoué.");
 
             await _personneAutoriseeEnfantRepository.AddAsync(personneAutoriseeEnfant);
 
             var createdPersonneAutoriseeEnfant = await _personneAutoriseeEnfantRepository.GetLinkAsync(personneAutoriseeEnfant.PersonneAutoriseeId, personneAutoriseeEnfant.EnfantId);
             if (createdPersonneAutoriseeEnfant == null)
-                return ServiceResult<LinkPersonneAutoriseeEnfantDto>.Fail("Échec de la création du lien Personne Autorisée / Enfant", ServiceErrorType.InternalError);
+                throw new Exception("Échec de la création du lien Personne Autorisée / Enfant.");
 
-            var createdPersonneAutoriseeEnfantDto = _mapper.Map<LinkPersonneAutoriseeEnfantDto>(createdPersonneAutoriseeEnfant);
-
-            return ServiceResult<LinkPersonneAutoriseeEnfantDto>.Ok(createdPersonneAutoriseeEnfantDto);
+            return _mapper.Map<LinkPersonneAutoriseeEnfantDto>(createdPersonneAutoriseeEnfant);
         }
 
-        public async Task<ServiceResult> UpdateLinkPersonneAutoriseeEnfantAsync(UpdateLinkPersonneAutoriseeEnfantDto personneAutoriseeEnfantDto)
+        public async Task UpdateLinkPersonneAutoriseeEnfantAsync(UpdateLinkPersonneAutoriseeEnfantDto personneAutoriseeEnfantDto)
         {
             if (personneAutoriseeEnfantDto == null) // TODO dans le controller
-                return ServiceResult.Fail("Le lien envoyé est vide");
+                throw new Exception("Le lien envoyé est vide");
 
             var personneAutoriseeEnfant = await _personneAutoriseeEnfantRepository.GetLinkAsync(personneAutoriseeEnfantDto.PersonneAutoriseeId, personneAutoriseeEnfantDto.EnfantId);
             if (personneAutoriseeEnfant == null)
-                return ServiceResult.Fail("Le lien Personne Autorisée / Enfant n'existe pas", ServiceErrorType.NotFound);
+                throw new Exception("Le lien Personne Autorisée / Enfant n'existe pas.");
 
             _mapper.Map(personneAutoriseeEnfantDto, personneAutoriseeEnfant);
 
             await _personneAutoriseeEnfantRepository.UpdateAsync(personneAutoriseeEnfant);
-
-            return ServiceResult.Ok();
         }
 
-        public async Task<ServiceResult> RemoveLinkPersonneAutoriseeEnfantAsync(int enfantId, int personneAutoriseeId)
+        public async Task RemoveLinkPersonneAutoriseeEnfantAsync(int enfantId, int personneAutoriseeId)
         {
             if (!await _personneAutoriseeEnfantRepository.LinkExistsAsync(personneAutoriseeId, enfantId))
-                return ServiceResult.Fail("Le lien Personne Autorisée / Enfant n'existe pas", ServiceErrorType.NotFound);
+                throw new Exception("Le lien Personne Autorisée / Enfant n'existe pas.");
 
             await _personneAutoriseeEnfantRepository.RemoveLinkAsync(personneAutoriseeId, enfantId);
-
-            return ServiceResult.Ok();
         }
     }
 }

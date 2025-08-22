@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using GestionAssociatifERP.Dtos.V1;
-using GestionAssociatifERP.Helpers;
 using GestionAssociatifERP.Models;
 using GestionAssociatifERP.Repositories;
 
@@ -17,7 +16,7 @@ namespace GestionAssociatifERP.Services
             _mapper = mapper;
         }
 
-        public async Task<ServiceResult<IEnumerable<DonneeSupplementaireDto>>> GetAllDonneesSupplementairesAsync()
+        public async Task<IEnumerable<DonneeSupplementaireDto>> GetAllDonneesSupplementairesAsync()
         {
             var donneesSupplementaires = await _donneeSupplementaireRepository.GetAllAsync();
             var donneesSupplementairesDto = _mapper.Map<IEnumerable<DonneeSupplementaireDto>>(donneesSupplementaires);
@@ -25,62 +24,54 @@ namespace GestionAssociatifERP.Services
             if (donneesSupplementairesDto == null)
                 donneesSupplementairesDto = new List<DonneeSupplementaireDto>();
 
-            return ServiceResult<IEnumerable<DonneeSupplementaireDto>>.Ok(donneesSupplementairesDto);
+            return donneesSupplementairesDto;
         }
 
-        public async Task<ServiceResult<DonneeSupplementaireDto>> GetDonneeSupplementaireAsync(int id)
+        public async Task<DonneeSupplementaireDto> GetDonneeSupplementaireAsync(int id)
         {
             var donneeSupplementaire = await _donneeSupplementaireRepository.GetByIdAsync(id);
             if (donneeSupplementaire == null)
-                return ServiceResult<DonneeSupplementaireDto>.Fail("Aucune donnée supplémentaire correspondante n'a été trouvée", ServiceErrorType.NotFound);
+                throw new Exception("Aucune donnée supplémentaire correspondante n'a été trouvée.");
 
-            var donneeSupplementaireDto = _mapper.Map<DonneeSupplementaireDto>(donneeSupplementaire);
-
-            return ServiceResult<DonneeSupplementaireDto>.Ok(donneeSupplementaireDto);
+            return _mapper.Map<DonneeSupplementaireDto>(donneeSupplementaire);
         }
 
-        public async Task<ServiceResult<DonneeSupplementaireDto>> CreateDonneeSupplementaireAsync(CreateDonneeSupplementaireDto donneeSupplementaireDto)
+        public async Task<DonneeSupplementaireDto> CreateDonneeSupplementaireAsync(CreateDonneeSupplementaireDto donneeSupplementaireDto)
         {
             var donneeSupplementaire = _mapper.Map<DonneeSupplementaire>(donneeSupplementaireDto);
             if (donneeSupplementaire == null)
-                return ServiceResult<DonneeSupplementaireDto>.Fail("Erreur lors de la création de la donnée supplémentaire : Le Mapping a échoué", ServiceErrorType.InternalError);
+                throw new Exception("Erreur lors de la création de la donnée supplémentaire : Le Mapping a échoué.");
 
             await _donneeSupplementaireRepository.AddAsync(donneeSupplementaire);
 
             var createdDonneeSupplementaire = await _donneeSupplementaireRepository.GetByIdAsync(donneeSupplementaire.Id);
             if (createdDonneeSupplementaire == null)
-                return ServiceResult<DonneeSupplementaireDto>.Fail("Échec de la création de la donnée supplémentaire", ServiceErrorType.InternalError);
+                throw new Exception("Échec de la création de la donnée supplémentaire.");
 
-            var CreatedDonneeSupplementaireDto = _mapper.Map<DonneeSupplementaireDto>(createdDonneeSupplementaire);
-
-            return ServiceResult<DonneeSupplementaireDto>.Ok(CreatedDonneeSupplementaireDto);
+            return _mapper.Map<DonneeSupplementaireDto>(createdDonneeSupplementaire);
         }
 
-        public async Task<ServiceResult> UpdateDonneeSupplementaireAsync(int id, UpdateDonneeSupplementaireDto donneeSupplementaireDto)
+        public async Task UpdateDonneeSupplementaireAsync(int id, UpdateDonneeSupplementaireDto donneeSupplementaireDto)
         {
             if (id != donneeSupplementaireDto.Id)
-                return ServiceResult.Fail("L'identifiant de la donnée supplémentaire ne correspond pas à celui de l'objet envoyé", ServiceErrorType.BadRequest);
+                throw new Exception("L'identifiant de la donnée supplémentaire ne correspond pas à celui de l'objet envoyé.");
 
             var donneeSupplementaire = await _donneeSupplementaireRepository.GetByIdAsync(id);
             if (donneeSupplementaire == null)
-                return ServiceResult.Fail("Aucune donnée supplémentaire correspondante n'a été trouvée", ServiceErrorType.NotFound);
+                throw new Exception("Aucune donnée supplémentaire correspondante n'a été trouvée.");
 
             _mapper.Map(donneeSupplementaireDto, donneeSupplementaire);
 
             await _donneeSupplementaireRepository.UpdateAsync(donneeSupplementaire);
-
-            return ServiceResult.Ok();
         }
 
-        public async Task<ServiceResult> DeleteDonneeSupplementaireAsync(int id)
+        public async Task DeleteDonneeSupplementaireAsync(int id)
         {
             var donneeSupplementaire = await _donneeSupplementaireRepository.GetByIdAsync(id);
             if (donneeSupplementaire == null)
-                return ServiceResult.Fail("Aucune donnée supplémentaire correspondante n'a été trouvée", ServiceErrorType.NotFound);
+                throw new Exception("Aucune donnée supplémentaire correspondante n'a été trouvée.");
 
             await _donneeSupplementaireRepository.DeleteAsync(id);
-
-            return ServiceResult.Ok();
         }
     }
 }

@@ -1,12 +1,13 @@
 ﻿using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using AutoMapper;
+using GestionAssociatifERP.Helpers;
 using GestionAssociatifERP.Mappings;
 using GestionAssociatifERP.Models;
 using GestionAssociatifERP.Repositories;
 using GestionAssociatifERP.Services;
-using Microsoft.EntityFrameworkCore;
-using Asp.Versioning.ApiExplorer;
 using GestionAssociatifERP.Swagger;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestionAssociatifERP
 {
@@ -31,6 +32,9 @@ namespace GestionAssociatifERP
                 options.GroupNameFormat = "'v'VVV";
                 options.SubstituteApiVersionInUrl = true;
             });
+
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -86,6 +90,10 @@ namespace GestionAssociatifERP
                     }
                 });
             }
+
+            app.UseExceptionHandler();
+
+            app.UseStatusCodePages();
 
             app.UseHttpsRedirection();
 

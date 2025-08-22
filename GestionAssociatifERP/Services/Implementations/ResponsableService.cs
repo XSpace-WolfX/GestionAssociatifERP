@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using GestionAssociatifERP.Dtos.V1;
-using GestionAssociatifERP.Helpers;
 using GestionAssociatifERP.Models;
 using GestionAssociatifERP.Repositories;
 
@@ -17,7 +16,7 @@ namespace GestionAssociatifERP.Services
             _mapper = mapper;
         }
 
-        public async Task<ServiceResult<IEnumerable<ResponsableDto>>> GetAllResponsablesAsync()
+        public async Task<IEnumerable<ResponsableDto>> GetAllResponsablesAsync()
         {
             var responsables = await _responsableRepository.GetAllAsync();
             var responsablesDto = _mapper.Map<IEnumerable<ResponsableDto>>(responsables);
@@ -25,95 +24,81 @@ namespace GestionAssociatifERP.Services
             if (responsablesDto == null)
                 responsablesDto = new List<ResponsableDto>();
 
-            return ServiceResult<IEnumerable<ResponsableDto>>.Ok(responsablesDto);
+            return responsablesDto;
         }
 
-        public async Task<ServiceResult<ResponsableDto>> GetResponsableAsync(int id)
+        public async Task<ResponsableDto> GetResponsableAsync(int id)
         {
             var responsable = await _responsableRepository.GetByIdAsync(id);
             if (responsable == null)
-                return ServiceResult<ResponsableDto>.Fail("Aucun responsable correspondant n'a été trouvé", ServiceErrorType.NotFound);
+                throw new Exception("Aucun responsable correspondant n'a été trouvé.");
 
-            var responsableDto = _mapper.Map<ResponsableDto>(responsable);
-
-            return ServiceResult<ResponsableDto>.Ok(responsableDto);
+            return _mapper.Map<ResponsableDto>(responsable);
         }
 
-        public async Task<ServiceResult<ResponsableWithInformationFinanciereDto>> GetResponsableWithInformationFinanciereAsync(int id)
+        public async Task<ResponsableWithInformationFinanciereDto> GetResponsableWithInformationFinanciereAsync(int id)
         {
             var responsable = await _responsableRepository.GetWithInformationFinanciereAsync(id);
             if (responsable == null)
-                return ServiceResult<ResponsableWithInformationFinanciereDto>.Fail("Aucun responsable correspondant n'a été trouvé", ServiceErrorType.NotFound);
+                throw new Exception("Aucun responsable correspondant n'a été trouvé.");
 
-            var responsableDto = _mapper.Map<ResponsableWithInformationFinanciereDto>(responsable);
-
-            return ServiceResult<ResponsableWithInformationFinanciereDto>.Ok(responsableDto);
+            return _mapper.Map<ResponsableWithInformationFinanciereDto>(responsable);
         }
 
-        public async Task<ServiceResult<ResponsableWithSituationPersonnelleDto>> GetResponsableWithSituationPersonnelleAsync(int id)
+        public async Task<ResponsableWithSituationPersonnelleDto> GetResponsableWithSituationPersonnelleAsync(int id)
         {
             var responsable = await _responsableRepository.GetWithSituationPersonnelleAsync(id);
             if (responsable == null)
-                return ServiceResult<ResponsableWithSituationPersonnelleDto>.Fail("Aucun responsable correspondant n'a été trouvé", ServiceErrorType.NotFound);
+                throw new Exception("Aucun responsable correspondant n'a été trouvé.");
 
-            var responsableDto = _mapper.Map<ResponsableWithSituationPersonnelleDto>(responsable);
-
-            return ServiceResult<ResponsableWithSituationPersonnelleDto>.Ok(responsableDto);
+            return _mapper.Map<ResponsableWithSituationPersonnelleDto>(responsable);
         }
 
-        public async Task<ServiceResult<ResponsableWithEnfantsDto>> GetResponsableWithEnfantsAsync(int id)
+        public async Task<ResponsableWithEnfantsDto> GetResponsableWithEnfantsAsync(int id)
         {
             var responsable = await _responsableRepository.GetWithEnfantsAsync(id);
             if (responsable == null)
-                return ServiceResult<ResponsableWithEnfantsDto>.Fail("Aucun responsable correspondant n'a été trouvé", ServiceErrorType.NotFound);
+                throw new Exception("Aucun responsable correspondant n'a été trouvé.");
 
-            var responsableDto = _mapper.Map<ResponsableWithEnfantsDto>(responsable);
-
-            return ServiceResult<ResponsableWithEnfantsDto>.Ok(responsableDto);
+            return _mapper.Map<ResponsableWithEnfantsDto>(responsable);
         }
 
-        public async Task<ServiceResult<ResponsableDto>> CreateResponsableAsync(CreateResponsableDto responsableDto)
+        public async Task<ResponsableDto> CreateResponsableAsync(CreateResponsableDto responsableDto)
         {
             var responsable = _mapper.Map<Responsable>(responsableDto);
             if (responsable == null)
-                return ServiceResult<ResponsableDto>.Fail("Erreur lors de la création du responsable : Le Mapping a échoué", ServiceErrorType.InternalError);
+                throw new Exception("Erreur lors de la création du responsable : Le Mapping a échoué.");
 
             await _responsableRepository.AddAsync(responsable);
 
             var responsableCreated = await _responsableRepository.GetByIdAsync(responsable.Id);
             if (responsableCreated == null)
-                return ServiceResult<ResponsableDto>.Fail("Échec de la création du responsable", ServiceErrorType.InternalError);
+                throw new Exception("Échec de la création du responsable.");
 
-            var responsableDtoCreated = _mapper.Map<ResponsableDto>(responsable);
-
-            return ServiceResult<ResponsableDto>.Ok(responsableDtoCreated);
+            return _mapper.Map<ResponsableDto>(responsable);
         }
 
-        public async Task<ServiceResult> UpdateResponsableAsync(int id, UpdateResponsableDto responsableDto)
+        public async Task UpdateResponsableAsync(int id, UpdateResponsableDto responsableDto)
         {
             if (id != responsableDto.Id)
-                return ServiceResult.Fail("L'identifiant du responsable ne correspond pas à celui de l'objet envoyé", ServiceErrorType.BadRequest);
+                throw new Exception("L'identifiant du responsable ne correspond pas à celui de l'objet envoyé.");
 
             var responsable = await _responsableRepository.GetByIdAsync(id);
             if (responsable == null)
-                return ServiceResult.Fail("Aucun responsable correspondant n'a été trouvé", ServiceErrorType.NotFound);
+                throw new Exception("Aucun responsable correspondant n'a été trouvé.");
 
             _mapper.Map(responsableDto, responsable);
 
             await _responsableRepository.UpdateAsync(responsable);
-
-            return ServiceResult.Ok();
         }
 
-        public async Task<ServiceResult> DeleteResponsableAsync(int id)
+        public async Task DeleteResponsableAsync(int id)
         {
             var responsable = await _responsableRepository.GetByIdAsync(id);
             if (responsable == null)
-                return ServiceResult.Fail("Aucun responsable correspondant n'a été trouvé", ServiceErrorType.NotFound);
+                throw new Exception("Aucun responsable correspondant n'a été trouvé.");
 
             await _responsableRepository.DeleteAsync(id);
-
-            return ServiceResult.Ok();
         }
     }
 }

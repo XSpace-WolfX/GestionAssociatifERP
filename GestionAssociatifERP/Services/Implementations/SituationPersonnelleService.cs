@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using GestionAssociatifERP.Dtos.V1;
-using GestionAssociatifERP.Helpers;
 using GestionAssociatifERP.Models;
 using GestionAssociatifERP.Repositories;
 
@@ -17,7 +16,7 @@ namespace GestionAssociatifERP.Services
             _mapper = mapper;
         }
 
-        public async Task<ServiceResult<IEnumerable<SituationPersonnelleDto>>> GetAllSituationsPersonnellesAsync()
+        public async Task<IEnumerable<SituationPersonnelleDto>> GetAllSituationsPersonnellesAsync()
         {
             var situationsPersonnelles = await _situationPersonnelleRepository.GetAllAsync();
             var situationsPersonnellesDto = _mapper.Map<IEnumerable<SituationPersonnelleDto>>(situationsPersonnelles);
@@ -25,62 +24,54 @@ namespace GestionAssociatifERP.Services
             if (situationsPersonnellesDto == null)
                 situationsPersonnellesDto = new List<SituationPersonnelleDto>();
 
-            return ServiceResult<IEnumerable<SituationPersonnelleDto>>.Ok(situationsPersonnellesDto);
+            return situationsPersonnellesDto;
         }
 
-        public async Task<ServiceResult<SituationPersonnelleDto>> GetSituationPersonnelleAsync(int id)
+        public async Task<SituationPersonnelleDto> GetSituationPersonnelleAsync(int id)
         {
             var situationPersonnelle = await _situationPersonnelleRepository.GetByIdAsync(id);
             if (situationPersonnelle == null)
-                return ServiceResult<SituationPersonnelleDto>.Fail("Aucune situation personnelle correspondante n'a été trouvée", ServiceErrorType.NotFound);
+                throw new Exception("Aucune situation personnelle correspondante n'a été trouvée.");
 
-            var situationPersonnelleDto = _mapper.Map<SituationPersonnelleDto>(situationPersonnelle);
-
-            return ServiceResult<SituationPersonnelleDto>.Ok(situationPersonnelleDto);
+            return _mapper.Map<SituationPersonnelleDto>(situationPersonnelle);
         }
 
-        public async Task<ServiceResult<SituationPersonnelleDto>> CreateSituationPersonnelleAsync(CreateSituationPersonnelleDto situationPersonnelleDto)
+        public async Task<SituationPersonnelleDto> CreateSituationPersonnelleAsync(CreateSituationPersonnelleDto situationPersonnelleDto)
         {
             var situationPersonnelle = _mapper.Map<SituationPersonnelle>(situationPersonnelleDto);
             if (situationPersonnelle == null)
-                return ServiceResult<SituationPersonnelleDto>.Fail("Erreur lors de la création de la situation personnelle : Le Mapping a échoué", ServiceErrorType.InternalError);
+                throw new Exception("Erreur lors de la création de la situation personnelle : Le Mapping a échoué.");
 
             await _situationPersonnelleRepository.AddAsync(situationPersonnelle);
 
             var situationPersonnelleCreated = await _situationPersonnelleRepository.GetByIdAsync(situationPersonnelle.Id);
             if (situationPersonnelleCreated == null)
-                return ServiceResult<SituationPersonnelleDto>.Fail("Échec de la création de la situation personnelle", ServiceErrorType.InternalError);
+                throw new Exception("Échec de la création de la situation personnelle.");
 
-            var situationPersonnelleDtoCreated = _mapper.Map<SituationPersonnelleDto>(situationPersonnelle);
-
-            return ServiceResult<SituationPersonnelleDto>.Ok(situationPersonnelleDtoCreated);
+            return _mapper.Map<SituationPersonnelleDto>(situationPersonnelle);
         }
 
-        public async Task<ServiceResult> UpdateSituationPersonnelleAsync(int id, UpdateSituationPersonnelleDto situationPersonnelleDto)
+        public async Task UpdateSituationPersonnelleAsync(int id, UpdateSituationPersonnelleDto situationPersonnelleDto)
         {
             if (id != situationPersonnelleDto.Id)
-                return ServiceResult.Fail("L'identifiant de la situation personnelle ne correspond pas à celui de l'objet envoyé", ServiceErrorType.BadRequest);
+                throw new Exception("L'identifiant de la situation personnelle ne correspond pas à celui de l'objet envoyé.");
 
             var situationPersonnelle = await _situationPersonnelleRepository.GetByIdAsync(id);
             if (situationPersonnelle == null)
-                return ServiceResult.Fail("Aucune situation personnelle correspondante n'a été trouvée", ServiceErrorType.NotFound);
+                throw new Exception("Aucune situation personnelle correspondante n'a été trouvée.");
 
             _mapper.Map(situationPersonnelleDto, situationPersonnelle);
 
             await _situationPersonnelleRepository.UpdateAsync(situationPersonnelle);
-
-            return ServiceResult.Ok();
         }
 
-        public async Task<ServiceResult> DeleteSituationPersonnelleAsync(int id)
+        public async Task DeleteSituationPersonnelleAsync(int id)
         {
             var situationPersonnelle = await _situationPersonnelleRepository.GetByIdAsync(id);
             if (situationPersonnelle == null)
-                return ServiceResult.Fail("Aucune situation personnelle correspondante n'a été trouvée", ServiceErrorType.NotFound);
+                throw new Exception("Aucune situation personnelle correspondante n'a été trouvée.");
 
             await _situationPersonnelleRepository.DeleteAsync(id);
-
-            return ServiceResult.Ok();
         }
     }
 }
